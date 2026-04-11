@@ -74,14 +74,6 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef(null);
 
-  useEffect(() => {
-    const handler = (e) => {
-      if (navRef.current && !navRef.current.contains(e.target)) setOpen(null);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
   return (
     <nav
       ref={navRef}
@@ -91,7 +83,7 @@ const Navbar = () => {
         {/* Desktop */}
         <ul className="hidden lg:flex items-center">
           {NAV_LINKS.map((link) => (
-            <NavLink key={link.label} link={link} />
+            <NavLink key={link.label} link={link} navRef={navRef} />
           ))}
         </ul>
 

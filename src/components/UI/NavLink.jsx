@@ -1,8 +1,17 @@
-import React, {useState} from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const NavLink = ({ link }) => {
+const NavLink = ({ link, navRef }) => {
   const [open, setOpen] = useState(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (navRef.current && !navRef.current.contains(e.target)) setOpen(null);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   return (
     <li key={link.label} className="relative group">
       <button
@@ -19,7 +28,7 @@ const NavLink = ({ link }) => {
         <div
           onMouseEnter={() => setOpen(link.label)}
           onMouseLeave={() => setOpen(null)}
-          className="absolute top-full left-0 bg-white text-[#003a6a] min-w-[220px] shadow-2xl rounded-b-xl z-50 overflow-hidden border-t-4 border-[#ff5421]"
+          className="absolute top-full left-0 bg-white text-[#003a6a] min-w-55 shadow-2xl rounded-b-xl z-50 overflow-hidden border-t-4 border-[#ff5421]"
         >
           {link.children.map((child) => (
             <Link

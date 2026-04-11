@@ -235,6 +235,7 @@ function HeroSlider() {
   ];
 
   const [active, setActive] = useState(0);
+  
   useEffect(() => {
     const t = setInterval(() => setActive((p) => (p + 1) % slides.length), 5000);
     return () => clearInterval(t);
