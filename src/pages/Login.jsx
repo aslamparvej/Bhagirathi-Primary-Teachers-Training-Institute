@@ -1,18 +1,38 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import API from "../services/api";
+import { Link, useNavigate  } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { UserRound, Lock, Eye, EyeOff } from "lucide-react";
 import logo from "../assets/logo.png";
-import { Link } from "react-router-dom";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [btnState, setBtnState] = useState("idle"); // idle | loading | error
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const { token, login } = useAuth();
+
+  useEffect(() => {
+    if (token) {
+      console.log("User already logged in, redirecting to dashboard...");
+      navigate("/admin/dashboard");
+    }
+  }, [token]);
+
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    console.log("Form Submitted!", { username: username, password: password });
+    try {
+      const res = await API.post("auth/login", { username, password });
+
+      login(res.data.token); // use context
+
+      navigate("/admin/dashboard"); // redirect to dashboard
+    } catch {
+      alert("Invalid credentials");
+    }
   };
 
   const btnStyle =

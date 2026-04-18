@@ -21,7 +21,7 @@ const Contact = () => {
               {
                 icon: "🚂",
                 label: "Nearest Station",
-                val: "Nimtita Railway Station",
+                val: "Jiaganj Railway Station",
               },
               { icon: "🛣️", label: "Highway", val: "Adjacent to NH-34" },
             ].map((item) => (

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 
 const STATS = [
   { value: "2013", label: "Established", icon: "🏛️" },
-  { value: "500+", label: "Students Enrolled", icon: "🎓" },
+  { value: "200+", label: "Students Enrolled", icon: "🎓" },
   { value: "25+", label: "Expert Faculty", icon: "👨‍🏫" },
   { value: "2", label: "Programmes Offered", icon: "📚" },
 ];

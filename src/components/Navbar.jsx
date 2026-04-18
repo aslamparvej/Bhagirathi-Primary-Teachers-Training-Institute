@@ -13,12 +13,12 @@ const NAV_LINKS = [
       "Society Pan Card",
     ],
   },
-  { label: "Management" },
+  { label: "Secretary" },
   {
     label: "About",
     children: [
       "General Information",
-      "Campus & Infrastructure",
+      "Infrastructure",
       "Land Documents",
       "Building Documents",
       "Building Plan",
@@ -31,12 +31,10 @@ const NAV_LINKS = [
       "NCTE Order (D.El.Ed)",
       "Affiliation (D.El.Ed)",
       "Fee Structure (D.El.Ed)",
-      "Internship (D.El.Ed)",
       "Annual Intake (D.El.Ed)",
       "NCTE Order (B.Ed)",
       "Affiliation (B.Ed)",
       "Fee Structure (B.Ed)",
-      "Internship (B.Ed)",
       "Annual Intake (B.Ed)",
       "Academic Calendar",
     ],
@@ -53,8 +51,8 @@ const NAV_LINKS = [
     ],
   },
   {
-    label: "Students",
-    children: ["B.Ed Students", "D.El.Ed Students", "Weekly Attendance"],
+    label: "Weekly Attendance",
+    children: ["Students Attendance", "Teachers Attendance"],
   },
   {
     label: "Resources",
@@ -71,6 +69,7 @@ const NAV_LINKS = [
 ];
 
 const Navbar = () => {
+  const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef(null);
 

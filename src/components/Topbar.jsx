@@ -7,7 +7,7 @@ const Topbar = () => {
     <div className="bg-[#003a6a] text-white text-xs px-6 py-2 flex flex-wrap justify-between items-center gap-2">
       <p className="flex gap-1 opacity-80">
         <MapPinIcon size={16}/>
-        <span>Sajurmore, P.O-Dafahat, P.S-Suti, Dist-Murshidabad, West Bengal —742224</span>
+        <span>Jiaganj, Murshidabad, West Bengal — 742122</span>
       </p>
       <div className="flex gap-4 items-center">
         <p className="flex gap-1 opacity-80"><PhoneIcon size={16} /> <span>+91-9434529777</span></p>

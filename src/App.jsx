@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import Admin from "./pages/Admin";
+import Dashbaord from "./pages/admin/Dashboard";
 import Upload from "./pages/Upload";
 import AMTTIWebsite from "./pages/AMTTIWebsite";
 
@@ -23,10 +23,10 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/amtti" element={<AMTTIWebsite />} />
           <Route
-            path="/admin"
+            path="/admin/dashboard"
             element={
               <ProtectedRoute>
-                <Admin />
+                <Dashbaord />
               </ProtectedRoute>
             }
           />

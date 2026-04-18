@@ -37,11 +37,6 @@ const Management = () => {
             </div>
           ))}
         </div>
-        <div className="text-center mt-8">
-          <button className="border-2 border-[#003a6a] text-[#003a6a] px-8 py-3 rounded-xl font-bold hover:bg-[#003a6a] hover:text-white transition-all">
-            View All Staff →
-          </button>
-        </div>
       </div>
     </section>
   );
