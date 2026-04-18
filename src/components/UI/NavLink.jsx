@@ -32,11 +32,11 @@ const NavLink = ({ link, navRef }) => {
         >
           {link.children.map((child) => (
             <Link
-              to="/login"
-              key={child}
+              to={`/docs/${child.slug}`}
+              key={child.label}
               className="block px-5 py-3 text-sm hover:bg-[#003a6a] hover:text-white transition-colors border-b border-gray-100 last:border-0"
             >
-              {child}
+              {child.label}
             </Link>
           ))}
         </div>
