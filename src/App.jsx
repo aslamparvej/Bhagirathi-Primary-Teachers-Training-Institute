@@ -4,9 +4,10 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import PageView from "./pages/PageView";
+
+import AdminHome from "./pages/admin/Home";
 import Dashbaord from "./pages/admin/Dashboard";
-import Upload from "./pages/Upload";
-import AMTTIWebsite from "./pages/AMTTIWebsite";
+import Upload from "./pages/admin/Upload";
 
 import Topbar from "./components/Topbar";
 import Header from "./components/Header";
@@ -206,12 +207,9 @@ const NAV_LINKS = [
 // Flat map of slug → page config — used by the route to look up page data
 const PAGE_MAP = Object.fromEntries(
   NAV_LINKS.flatMap((l) =>
-    l.children
-      ? l.children.map((c) => [c.slug, c])
-      : [[l.slug, l]]
-  )
+    l.children ? l.children.map((c) => [c.slug, c]) : [[l.slug, l]],
+  ),
 );
-
 
 function App() {
   return (
@@ -219,27 +217,33 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/amtti" element={<AMTTIWebsite />} />
         <Route
-          path="/admin/dashboard"
+          path="/admin"
           element={
             <ProtectedRoute>
-              <Dashbaord />
+              <AdminHome />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/admin/upload"
-          element={
-            <ProtectedRoute>
-              <Upload />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/docs/:slug"
-          element={<PageView pageMap={PAGE_MAP} />}
-        />
+        >
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashbaord />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/uploads"
+            element={
+              <ProtectedRoute>
+                <Upload />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        <Route path="/docs/:slug" element={<PageView pageMap={PAGE_MAP} />} />
         <Route path="*" element={<h1>Page Not Found</h1>} />
       </Routes>
     </Router>
