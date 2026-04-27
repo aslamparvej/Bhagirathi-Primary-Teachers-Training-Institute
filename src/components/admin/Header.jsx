@@ -1,6 +1,38 @@
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { Search, BellDot } from "lucide-react";
 
 const Header = () => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const dropdownRef = useRef(null);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  // Handle click outside to close dropdown
+  const handleClickOutside = (event) => {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target)
+    ) {
+      setIsDropdownOpen(false);
+    }
+  };
+
+  // Add click outside listener
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-3.5 flex items-center justify-between shrink-0">
       <div>
@@ -37,14 +69,40 @@ const Header = () => {
 
         {/* Admin avatar */}
         <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">
-          <div className="w-8 h-8 rounded-full bg-[#003a6a] flex items-center justify-center text-white text-xs font-black">
-            AD
-          </div>
           <div className="hidden sm:block">
             <div className="text-xs font-semibold text-gray-800">
               Administrator
             </div>
             <div className="text-[10px] text-gray-400">Super Admin</div>
+          </div>
+          <div
+            ref={dropdownRef}
+            onClick={() => setIsDropdownOpen(true)}
+            className="w-8 h-8 rounded-full bg-[#003a6a] flex items-center justify-center text-white text-xs font-black relative cursor-pointer"
+          >
+            AD
+            {isDropdownOpen && (
+              <div className="absolute right-0 top-8 z-20 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 transition-transform -translate-y-1 translate-y-0 duration-200">
+                <a
+                  href="#"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Profile
+                </a>
+                <a
+                  href="#"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Settings
+                </a>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full cursor-pointer text-start px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
