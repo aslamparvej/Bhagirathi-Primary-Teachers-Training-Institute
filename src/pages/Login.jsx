@@ -30,8 +30,13 @@ const Login = () => {
       login(res.data.token); // use context
 
       navigate("/admin/dashboard"); // redirect to dashboard
-    } catch {
-      alert("Invalid credentials");
+    } catch (error) {
+      console.log("Login failed:", error);
+      setBtnState("error");
+
+      setTimeout(() => {
+        setBtnState("idle");
+      }, 3000);
     }
   };
 
