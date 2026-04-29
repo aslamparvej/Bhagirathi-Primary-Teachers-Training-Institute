@@ -1,17 +1,53 @@
 import { useState } from "react";
+import API from "../../services/api";
+import { Calendar, Eye, Trash2 } from "lucide-react";
+
+const CATEGORY_STYLE = {
+  "Student Attendance": "bg-blue-50 text-blue-700 border-blue-200",
+  "Teacher Attendance": "bg-emerald-50 text-emerald-700 border-emerald-200",
+};
+
+function formatDate(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 const PDFTable = ({ uploads, CATEGORIES }) => {
+  const [items, setItems] = useState(uploads);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
   const [deleteId, setDeleteId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const filtered = uploads.filter((p) => {
-    const matchSearch =
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.dateRange.toLowerCase().includes(searchQuery.toLowerCase());
+  // Sync when parent adds a new upload
+  if (uploads.length !== items.length) {
+    setItems(uploads);
+  }
+
+  const filtered = items.filter((p) => {
+    const matchSearch = p.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
     const matchCat = filterCategory === "All" || p.category === filterCategory;
     return matchSearch && matchCat;
   });
+
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+      await API.delete(`/pdfs/${deleteId}`);
+      setItems((prev) => prev.filter((p) => p.id !== deleteId));
+      setDeleteId(null);
+    } catch (err) {
+      console.error("Delete failed:", err);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="mt-8">
@@ -29,7 +65,7 @@ const PDFTable = ({ uploads, CATEGORIES }) => {
               </p>
             </div>
             <span className="text-xs font-bold text-white bg-[#003a6a] px-3 py-1 rounded-full">
-              {uploads.length} Total
+              {items.length} Total
             </span>
           </div>
 
@@ -53,7 +89,7 @@ const PDFTable = ({ uploads, CATEGORIES }) => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search title or date range…"
+                placeholder="Search by title…"
                 className="w-full pl-9 pr-4 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#003a6a] transition-colors"
               />
             </div>
@@ -87,7 +123,7 @@ const PDFTable = ({ uploads, CATEGORIES }) => {
           ) : (
             filtered.map((pdf) => (
               <div
-                key={pdf._id}
+                key={pdf.id}
                 className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/70 transition-colors group"
               >
                 {/* PDF icon */}
@@ -115,63 +151,55 @@ const PDFTable = ({ uploads, CATEGORIES }) => {
                     {pdf.title}
                   </p>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    {/* Category badge */}
                     <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${CATEGORY_STYLE[pdf.category] || CATEGORY_STYLE.General}`}
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                        CATEGORY_STYLE[pdf.category] ??
+                        "bg-gray-50 text-gray-600 border-gray-200"
+                      }`}
                     >
                       {pdf.category}
                     </span>
-                    <span className="text-[10px] text-gray-400">
-                      📅 {formatDate(pdf.date)}
-                    </span>
-                    <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">
-                      {pdf.dateRange}
-                    </span>
+
+                    {/* Date range */}
+                    {pdf.dateRange?.start && (
+                      <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                        <Calendar size={12} /> {formatDate(pdf.dateRange.start)}
+                        {pdf.dateRange.end && (
+                          <> → {formatDate(pdf.dateRange.end)}</>
+                        )}
+                      </span>
+                    )}
                   </div>
                 </div>
 
+                {/* <iframe
+                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(pdf.fileUrl)}&embedded=true`}
+                  width="100%"
+                  height="600px"
+                  title="PDF Viewer"
+                /> */}
+
                 {/* Actions */}
                 <div className="flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* View PDF */}
                   <a
-                    href={pdf.fileUrl}
+                    href={`https://docs.google.com/viewer?url=${encodeURIComponent(pdf.fileUrl)}&embedded=true`}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="w-8 h-8 rounded-lg bg-[#003a6a]/8 hover:bg-[#003a6a]/15 flex items-center justify-center transition-colors"
                     title="View PDF"
                   >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#003a6a"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
+                   <Eye size={16} color="#003a6a" />
                   </a>
+
+                  {/* Delete */}
                   <button
-                    onClick={() => setDeleteId(pdf._id)}
-                    className="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors"
+                    onClick={() => setDeleteId(pdf.id)}
+                    className="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors cursor-pointer"
                     title="Delete PDF"
                   >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#ef4444"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                      <path d="M10 11v6M14 11v6" />
-                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                    </svg>
+                    <Trash2 size={16} color="#ef4444" />
                   </button>
                 </div>
               </div>
@@ -179,6 +207,39 @@ const PDFTable = ({ uploads, CATEGORIES }) => {
           )}
         </div>
       </div>
+
+      {/* Delete confirm modal */}
+      {deleteId && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 w-80 mx-4">
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+              <Trash2 size={22} color="#ef4444" />
+            </div>
+            <h3 className="text-sm font-bold text-gray-800 text-center">
+              Delete this document?
+            </h3>
+            <p className="text-xs text-gray-400 text-center mt-1 mb-5">
+              This will permanently remove the PDF from Cloudinary and the
+              database.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteId(null)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-60"
+              >
+                {deleting ? "Deleting…" : "Yes, Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

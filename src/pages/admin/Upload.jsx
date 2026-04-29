@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AttendanceRangePicker from "../../components/UI/AttendanceRangePicker";
 import PDFTable from "../../components/admin/PDFTable";
 import {
@@ -8,24 +8,11 @@ import {
   endOfWeek,
 } from "date-fns";
 
+import API from "../../services/api";
 
 const CATEGORIES = ["Student Attendance", "Teacher Attendance"];
 
-const CATEGORY_STYLE = {
-  Attendance: "bg-green-50 text-green-700 border-green-200",
-};
-
-const MOCK_UPLOADS = [];
-
-function formatDate(d) {
-  return new Date(d).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-// ── Drop Zone Component ───────────────────────────────────────────
+// ── Drop Zone Component
 function DropZone({ file, onFile }) {
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef();
@@ -130,13 +117,15 @@ function DropZone({ file, onFile }) {
   );
 }
 
+const EMPTY_FORM = {
+  title: "",
+  category: CATEGORIES[0],
+  dateRange: null,
+};
+
 const Upload = () => {
   const [file, setFile] = useState(null);
-  const [form, setForm] = useState({
-    title: "",
-    category: CATEGORIES[0],
-    dateRange: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
   const [range, setRange] = useState([
     {
       startDate: new Date(),
@@ -144,13 +133,41 @@ const Upload = () => {
       key: "selection",
     },
   ]);
-
-  const [uploads, setUploads] = useState(MOCK_UPLOADS);
+  const [uploads, setUploads] = useState([]);
   const [status, setStatus] = useState("idle"); // idle | uploading | success | error
 
-  const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
+  useEffect(() => {
+    const fetchPDFs = async () => {
+      try {
+        const response = await API.get("/pdfs");
+        if (response.status === 200) {
+          setUploads(
+            response.data.map((pdf) => ({
+              id: pdf._id,
+              title: pdf.title,
+              category: pdf.category,
+              dateRange: pdf.dateRange,
+              fileUrl: pdf.fileUrl,
+            })),
+          );
+        } else {
+          console.log("Error fetching PDFs");
+        }
+      } catch (error) {
+        console.error("Error fetching PDFs:", error);
+      }
+    };
 
-  const isValid = file && form.title.trim() && form.category && form.dateRange.trim();
+    fetchPDFs();
+  }, []);
+
+  const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
+  const isValid =
+    file &&
+    form.title.trim() &&
+    form.category &&
+    form.dateRange?.start &&
+    form.dateRange?.end;
 
   // Handle date range selection with restrictions: no weekends, max 5 days, within same week
   const handleSelect = (ranges) => {
@@ -185,23 +202,62 @@ const Upload = () => {
       },
     ]);
 
-    setForm((prev) => ({ ...prev, dateRange: `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}` }));
+    setForm((prev) => ({
+      ...prev,
+      dateRange: {
+        start: startDate,
+        end: endDate,
+      },
+    }));
   };
 
-   // Handle form submission and simulate upload process
-  const handleUpload = (e) => {
+  // Handle form submission and simulate upload process
+  const handleUpload = async (e) => {
     e.preventDefault();
     if (!isValid) return;
-    // Simulate upload process
-    setStatus("uploading");
 
+    try {
+      setStatus("uploading");
 
-    console.log("Uploading:", {
-      file,
-      title: form.title,
-      category: form.category,
-      dateRange: form.dateRange,
-    });
+      const formData = new FormData();
+      formData.append("pdf", file);
+      formData.append("title", form.title);
+      formData.append("category", form.category);
+      formData.append("dateRange[start]", form.dateRange.start.toISOString());
+      formData.append("dateRange[end]", form.dateRange.end.toISOString());
+
+      const response = await API.post("/pdfs/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.status === 201) {
+
+        const data = response.data;
+
+        setUploads((prev) => [
+          ...prev,
+          {
+            id: data._id,
+            title: data.title,
+            category: data.category,
+            dateRange: data.dateRange,
+            fileUrl: data.fileUrl,
+          },
+        ]);
+
+        setFile(null);
+        setForm(EMPTY_FORM);
+        setStatus("success");
+      } else {
+        console.log("Error to upload PDF");
+        setStatus("error");
+      }
+    } catch (error) {
+      console.error(error);
+      setStatus("error");
+    }
   };
 
   return (
@@ -260,12 +316,15 @@ const Upload = () => {
                   Academic / Date Range{" "}
                   <span className="text-[#ff5421]">*</span>
                 </label>
-                <AttendanceRangePicker range={range} setRange={setRange} handleSelect={handleSelect} />
+                <AttendanceRangePicker
+                  range={range}
+                  setRange={setRange}
+                  handleSelect={handleSelect}
+                />
                 <p className="text-[10px] text-gray-400 mt-1.5 pl-1">
                   Specify the session or date range this document covers
                 </p>
               </div>
-
 
               {/* Status messages */}
               {status === "success" && (
